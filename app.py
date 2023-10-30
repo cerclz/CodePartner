@@ -101,3 +101,44 @@ def index():
         return render_template("index.html")
     else:
         return render_template("index.html")
+    
+@app.route("/partner")
+def partner():
+    return render_template("partner.html")
+
+@app.route("/create_post", methods=["GET", "POST"])
+def create_post():
+    # Check if user is logged in
+    if session.get("user_id") is None:
+        return ("You are not logged in")
+    else:
+        # If user is logged in check if method is POST
+        if request.method == "POST":
+            # If method is post ensure the form submitted correctly
+            title = request.form.get("title")
+            category = request.form.get("category")
+            subject = request.form.get("subject")
+
+            if not title:
+                return ("No title")
+            elif not subject:
+                return ("no subject")
+            
+            if not category:
+                return ("no category")
+            else:
+                cursor.execute("SELECT id FROM categories WHERE category_name = ?", [category])
+                category_id = cursor.fetchall()[0][0]
+                print(category_id)
+            
+            # Submit the post to database
+            cursor.execute("INSERT INTO posts (title, content, user_id, category_id, creation_date, last_modified) VALUES (?, ?, ?, ?, ?, ?)", (title, subject, int(session["user_id"]), int(category_id), date.today(), date.today()))
+            conn.commit()
+        
+        # Select all category names from database
+        cursor.execute("SELECT category_name FROM categories")
+        rows = cursor.fetchall()
+
+        # Render create post template with categories
+        return render_template("create_post.html", cats=rows)
+    

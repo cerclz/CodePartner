@@ -18,10 +18,6 @@ Session(app)
 conn = sqlite3.connect('codepartner.db', check_same_thread=False)
 cursor = conn.cursor()
 
-@app.route("/")
-def index():
-    return render_template("index.html")
-
 @app.route("/register", methods=["GET", "POST"])
 def register():
     # Register User
@@ -82,13 +78,26 @@ def login():
         
         # Remeber Session information
         session["user_id"] = rows[0][0]
-        session["username"] = request.form.get("username")    
+        session["username"] = request.form.get("username")
+        session['logged_in'] = True  
 
         # Redirect to homepage
-        return redirect("/")
-
-        
-
+        return redirect("/")      
 
     return render_template("login.html")
 
+
+@app.route("/logout")
+def logout():
+    # Forget any user_id
+    session.clear()
+
+    # Redirect user to login form
+    return redirect("/")
+
+@app.route("/")
+def index():
+    if session.get("user_id") is None:
+        return render_template("index.html")
+    else:
+        return render_template("index.html")

@@ -86,7 +86,6 @@ def login():
 
     return render_template("login.html")
 
-
 @app.route("/logout")
 def logout():
     # Forget any user_id
@@ -104,7 +103,31 @@ def index():
     
 @app.route("/partner")
 def partner():
-    return render_template("partner.html")
+    page = request.args.get('page', 1, type=int)
+
+    # Calculate the offset based on the page and per_page values
+    offset = (page - 1) * 10
+    
+    # Query the database to get the posts for the current page
+    cursor.execute("""SELECT posts.title, posts.content, posts.creation_date, users.username, categories.category_name 
+                   FROM posts
+                   JOIN users ON users.id = posts.user_id 
+                   JOIN categories ON categories.id = posts.category_id
+                   ORDER BY posts.last_modified DESC
+                   LIMIT ? OFFSET ?;""", (10, offset))
+    posts = cursor.fetchall()
+
+    print(posts)
+
+    # Query the database to get the total count of posts
+    cursor.execute("SELECT COUNT(*) FROM posts;")
+    total_posts = cursor.fetchall()[0][0]
+
+    total_pages = (total_posts + 10 - 1) // 10
+    
+    # Send all posts to partner page
+    return render_template("partner.html", posts = posts , total_pages = total_pages, page = page)
+
 
 @app.route("/create_post", methods=["GET", "POST"])
 def create_post():
@@ -124,6 +147,7 @@ def create_post():
             elif not subject:
                 return ("no subject")
             
+            # If category submitted correctly find category ID
             if not category:
                 return ("no category")
             else:
@@ -141,4 +165,3 @@ def create_post():
 
         # Render create post template with categories
         return render_template("create_post.html", cats=rows)
-    

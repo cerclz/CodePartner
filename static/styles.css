@@ -5,3 +5,7 @@
 .white-link:hover{
     color:white;
 }
+
+#textform{
+    display: none;
+}

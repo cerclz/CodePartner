@@ -110,7 +110,7 @@ def partner():
     offset = (page - 1) * 10
     
     # Query the database to get the posts for the current page in descending order
-    cursor.execute("""SELECT posts.title, posts.content, posts.creation_date, users.username, categories.category_name 
+    cursor.execute("""SELECT posts.id, posts.title, posts.content, posts.creation_date, users.username, categories.category_name 
                    FROM posts
                    JOIN users ON users.id = posts.user_id 
                    JOIN categories ON categories.id = posts.category_id
@@ -126,6 +126,30 @@ def partner():
     
     # Send all posts to partner page
     return render_template("partner.html", posts = posts , total_pages = total_pages, page = page)
+
+@app.route("/post/<int:id>", methods=["GET", "POST"])
+def post(id):
+    # Check if method is POST
+    if request.method == "POST":
+        # Add reply to the database
+        cursor.execute("INSERT INTO replies (post_id, user_id, content, creation_date) VALUES (?, ?, ?, ?)", (id, int(session["user_id"]), request.form.get("reply"), date.today()))
+        conn.commit()
+
+    # Query database to get the post information
+    cursor.execute("""SELECT posts.title, posts.content, posts.creation_date, users.username, categories.category_name
+                   FROM posts
+                   JOIN users ON users.id = posts.user_id 
+                   JOIN categories ON categories.id = posts.category_id
+                   WHERE posts.id = ?;""", [int(id)])
+    post = cursor.fetchall()
+
+    # Query database to get replies
+    cursor.execute("""SELECT replies.content, replies.creation_date, users.username
+                   FROM replies
+                   JOIN users ON users.id = replies.user_id
+                   WHERE post_id = ?""", [int(id)])
+    replies = cursor.fetchall()
+    return render_template("post.html", post=post, id = id, replies = replies)
 
 
 @app.route("/create_post", methods=["GET", "POST"])

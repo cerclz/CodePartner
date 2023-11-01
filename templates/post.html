@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block main %}
+    <h2>{{post[0][0]}}</h2>
+    <h4>posted on: {{post[0][2]}} by: {{post[0][3]}} category: {{post[0][4]}}</h4>
+    <p>{{ post[0][1] }}</p>
+    <h2>Replies</h2>
+    {% for reply in replies %}
+        {{ reply[0] }}
+    {% endfor %}
+    <form action="/post/{{id}}" method="POST" id="replyform">
+        <div class="mb-3">
+            <textarea class="form-control mx-auto" id="reply" name="reply" form="replyform" rows="4" cols="50" maxlength="140" placeholder="What are you working at?"></textarea>
+        </div>
+    
+        <button class="btn btn-primary" type="submit">Reply</button>
+    </form>
+{% endblock %}

@@ -1,30 +1,26 @@
 {% extends "layout.html" %}
 {% block main %}   
+<button type="button" class="btn btn-primary"><a class="white-link" href="/create_post">Find partner</a></button>
 
     <div class="container">
-        <button type="button" class="btn btn-primary float-right"><a class="white-link" href="/create_post">Find partner</a></button>
         {% for post in posts %}
 
-        <div class="row pt-5 align-items-start">
+        <div class="row pt-5 align-items-start border">
             <div class="col-12">
-                <h4>{{post[0]}}</h4>
+                <h4><a href="{{ url_for('post', id=post[0])}}"> {{post[1]}}</a></h4>
             </div>
-            
-            <div class="col-12">
-                <h6>category: {{post[4]}}</h6>
-            </div>
-            
-        </div>
-        <div class="row align-items-start border-bottom border-top">
             <div class="col text-left">
-                <p>{{post[1]}}</p>
+                <p>{{post[2]}}</p>
             </div>
             <div class="col-12 text-right">
-                <h6>posted on: {{post[2]}} by: {{post[3]}}</h6>
-                <span class="badge rounded-pill text-bg-primary">Primary</span>
-
+                <p>
+                    <button type="button" class="btn btn-primary btn-sm"><a class="white-link" href="{{ url_for('post', id=post[0])}}">Add Reply</a></button>
+                    posted on: {{post[3]}} by: {{post[4]}} category: {{post[5]}}
+                </p>
             </div>
         </div>
+            
+
         {% endfor %}
         page: {{page}} / {{total_pages}}
     </div>

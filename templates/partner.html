@@ -5,7 +5,7 @@
         <button type="button" class="btn btn-primary float-right"><a class="white-link" href="/create_post">Find partner</a></button>
         {% for post in posts %}
 
-        <div class="row align-items-start">
+        <div class="row pt-5 align-items-start">
             <div class="col-12">
                 <h4>{{post[0]}}</h4>
             </div>
@@ -21,11 +21,12 @@
             </div>
             <div class="col-12 text-right">
                 <h6>posted on: {{post[2]}} by: {{post[3]}}</h6>
+                <span class="badge rounded-pill text-bg-primary">Primary</span>
+
             </div>
         </div>
-        page: {{page}} / {{total_pages}}
         {% endfor %}
-
+        page: {{page}} / {{total_pages}}
     </div>
 
 {% endblock %}

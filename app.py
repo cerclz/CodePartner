@@ -89,8 +89,9 @@ def login():
 @app.route("/logout")
 def logout():
     # Forget any user_id
-    session.clear()
+    session['logged_in'] = False  
 
+    session.clear()
     # Redirect user to login form
     return redirect("/")
 
@@ -108,7 +109,7 @@ def partner():
     # Calculate the offset based on the page and per_page values
     offset = (page - 1) * 10
     
-    # Query the database to get the posts for the current page
+    # Query the database to get the posts for the current page in descending order
     cursor.execute("""SELECT posts.title, posts.content, posts.creation_date, users.username, categories.category_name 
                    FROM posts
                    JOIN users ON users.id = posts.user_id 
@@ -116,8 +117,6 @@ def partner():
                    ORDER BY posts.last_modified DESC
                    LIMIT ? OFFSET ?;""", (10, offset))
     posts = cursor.fetchall()
-
-    print(posts)
 
     # Query the database to get the total count of posts
     cursor.execute("SELECT COUNT(*) FROM posts;")
@@ -153,7 +152,6 @@ def create_post():
             else:
                 cursor.execute("SELECT id FROM categories WHERE category_name = ?", [category])
                 category_id = cursor.fetchall()[0][0]
-                print(category_id)
             
             # Submit the post to database
             cursor.execute("INSERT INTO posts (title, content, user_id, category_id, creation_date, last_modified) VALUES (?, ?, ?, ?, ?, ?)", (title, subject, int(session["user_id"]), int(category_id), date.today(), date.today()))
@@ -165,3 +163,48 @@ def create_post():
 
         # Render create post template with categories
         return render_template("create_post.html", cats=rows)
+    
+@app.route("/profile")
+def profile():
+    # Query database to get the profule information and display it in the profile page
+    cursor.execute("SELECT email, username, first_name, last_name, birth_date, registration_date FROM users WHERE id = ?", [session['user_id']])
+    rows = cursor.fetchall()
+    return render_template("profile.html", rows = rows)
+
+@app.route("/edit_profile", methods=["GET", "POST"])
+def edit_profile():
+    # Query database to get the profile information to display it in the editing fields
+    cursor.execute("SELECT email, username, first_name, last_name, birth_date, registration_date FROM users WHERE id = ?", [session['user_id']])
+    rows = cursor.fetchall()
+
+    user_email = rows[0][0]
+    first_name = rows[0][2]
+    last_name = rows[0][3]
+    birthday = rows[0][4]
+
+    # Check if method is POST
+    if request.method == "POST":
+        # Check if values in the form have changed
+        if request.form.get("email") != rows[0][0]:
+            user_email = request.form.get("email")
+
+        if request.form.get("first_name") != rows[0][2]:
+            first_name = request.form.get("first_name")
+
+        if request.form.get("last_name") != rows[0][3]:
+            last_name = request.form.get("last_name")
+
+        if request.form.get("birthday") != rows[0][4]:
+            birthday = request.form.get("birthday")
+
+        cursor.execute("""UPDATE users
+                       SET email = ?,
+                        first_name = ?,
+                        last_name = ?,
+                        birth_date = ?
+                        WHERE id = ?""",
+                        (user_email, first_name, last_name, birthday, session["user_id"]))
+        
+        return redirect("profile")
+        
+    return render_template("edit_profile.html", rows = rows)

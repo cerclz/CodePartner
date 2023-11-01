@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block main %}
+    <h6>E-mail: {{rows[0][0]}}</h6>
+    <h6>Username: {{rows[0][1]}}</h6>
+    <h6>Name: {{rows[0][2]}} {{rows[0][3]}}</h6>
+    <h6>Birthday: {{rows[0][4]}}</h6>
+    <h6>Member Since: {{rows[0][5]}}</h6>
+    <button type="button" class="btn btn-primary"><a class="white-link" href="/edit_profile">Edit Profile</a></button>
+{% endblock %}

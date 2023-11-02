@@ -6,8 +6,7 @@ from datetime import date
 import sqlite3
 
 # Configure Application
-app = Flask(__name__, instance_relative_config=True)
-app.config.from_pyfile('config.py')
+app = Flask(__name__)
 
 # Configure Session
 app.config["SESSION_PERMANENT"] = False

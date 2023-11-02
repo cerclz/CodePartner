@@ -5,7 +5,12 @@
     <p>{{ post[0][1] }}</p>
     <h2>Replies</h2>
     {% for reply in replies %}
+    <div class="row py-2 align-items-start">
         {{ reply[0] }}
+        <br>
+        posted by: {{ reply[2] }} on: {{reply[1]}}
+    </div>
+
     {% endfor %}
     <form action="/post/{{id}}" method="POST" id="replyform">
         <div class="mb-3">

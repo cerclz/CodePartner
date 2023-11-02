@@ -1,11 +1,11 @@
 {% extends "layout.html" %}
 {% block main %}   
-<button type="button" class="btn btn-primary"><a class="white-link" href="/create_post">Find partner</a></button>
+<button type="button" class="btn btn-primary my-2"><a class="white-link" href="/create_post">Find partner</a></button>
 
     <div class="container">
         {% for post in posts %}
 
-        <div class="row pt-5 align-items-start border">
+        <div class="row pt-3 align-items-start border">
             <div class="col-12">
                 <h4><a href="{{ url_for('post', id=post[0])}}"> {{post[1]}}</a></h4>
             </div>

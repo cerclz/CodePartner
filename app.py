@@ -235,3 +235,41 @@ def edit_profile():
         return redirect("profile")
         
     return render_template("edit_profile.html", rows = rows)
+
+@app.route("/password_change", methods=["GET", "POST"])
+def password_change():
+    # Change password feature
+
+    #Check if method is POST
+    if request.method == "POST":
+        # Ensure previous password was submitted
+        if not request.form.get("prev-pswd"):
+            flash("Type in your current password!")
+            return render_template("password_change.html")
+
+        # Ensure new password was submitted
+        if not request.form.get("new-pswd"):
+            flash("Type in your new password!")
+            return render_template("password_change.html")
+        
+        # Select user hashed_password from db
+        cursor.execute("SELECT password_hash FROM users WHERE id = ?", [session['user_id']])
+        rows = cursor.fetchall()[0][0]
+
+        # Check if form previous password is equal with current hash
+        if not check_password_hash(rows, request.form.get("prev-pswd")):
+            flash("Previous password is not correct!")
+            return render_template("password_change.html")
+
+        # Check if repeat password is correct
+        if not request.form.get("new-pswd") == request.form.get("rpt-pswd"):
+            flash("New password doesn't match!")
+            return render_template("password_change.html")
+
+        new_pswd_hash = generate_password_hash(request.form.get("new-pswd"))
+        cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_pswd_hash, session["user_id"]))
+
+        flash('Password succesfuly changed!')
+        
+
+    return render_template("password_change.html")

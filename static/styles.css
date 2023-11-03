@@ -9,3 +9,7 @@
 #textform{
     display: none;
 }
+
+.error {
+    color: red
+}

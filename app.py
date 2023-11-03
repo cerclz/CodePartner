@@ -4,6 +4,7 @@ from flask_session import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import date
 import sqlite3
+import re
 
 # Configure Application
 app = Flask(__name__)
@@ -12,6 +13,10 @@ app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
 app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
+
+# Regular expressions for username and password validation
+username_regex = r'^[a-zA-Z0-9_-]{3,20}$'
+password_regex = r'^.{6,}$'
 
 # Connect to database
 conn = sqlite3.connect('codepartner.db', check_same_thread=False)
@@ -28,14 +33,13 @@ def register():
     # Check if method is POST
     if request.method == "POST":
         # Check if the user filled the form
-        if not user_email:
-            return("No email")
-        elif not username:
-            return("No username")
-        elif not user_password:
-            return("No password")
-        elif user_password != confirmation:
-            return("Passwords do not match")
+        if not user_email or not username or not user_password or user_password != confirmation:
+            flash("An error occurred while processing your registration.", 'error')
+            return render_template("register.html")
+        
+        # Check if form meets regex
+        if not re.match(username_regex, username) or not re.match(password_regex, user_password):
+            return("Not a valid username or password") 
         
         # Generate password hash for the user
         password_hash = generate_password_hash(user_password)
@@ -50,7 +54,7 @@ def register():
             conn.commit()
 
         # Send an alert if successful
-        flash("Account successfully created!")
+        flash("Welcome aboard! Your account has been created.")
 
     return render_template("register.html")
 

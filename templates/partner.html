@@ -1,22 +1,36 @@
 {% extends "layout.html" %}
 {% block main %}   
-<button type="button" class="btn btn-primary my-2"><a class="white-link" href="/create_post">Find partner</a></button>
-
     <div class="container">
+        <div class="row pt-3 align-items-start border">
+            <div class="col-12">
+                <form action="/partner" method="POST" id="postform" class="w-100 p-3">
+                    <div class="mb-3">
+                        <textarea class="form-control" id="subject" name="subject" form="postform" maxlength="140" placeholder="What are you working at?"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <select class="form-select btn btn-primary" id="category" name="category">
+                            <option selected disabled>Select Category</option>
+                            {% for cat in cats %}
+                            <option value="{{ cat[0] }}">{{cat[0]}}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-primary ml-3" type="submit">Create post</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+  
         {% for post in posts %}
 
         <div class="row pt-3 align-items-start border">
             <div class="col-12">
-                <h4><a href="{{ url_for('post', id=post[0])}}"> {{post[1]}}</a></h4>
+                <h6><a href="{{ url_for('post', id=post[0])}}"> {{post[3]}}</a> {{post[2]}} {{post[4]}}</h6>
             </div>
             <div class="col text-left">
-                <p>{{post[2]}}</p>
+                <p>{{post[1]}}</p>
             </div>
             <div class="col-12 text-right">
-                <p>
-                    <button type="button" class="btn btn-primary btn-sm"><a class="white-link" href="{{ url_for('post', id=post[0])}}">Add Reply</a></button>
-                    posted on: {{post[3]}} by: {{post[4]}} category: {{post[5]}}
-                </p>
+                <button type="button" class="btn btn-primary btn-sm m-2"><a class="white-link" href="{{ url_for('post', id=post[0])}}">Add Reply</a></button>
             </div>
         </div>
             

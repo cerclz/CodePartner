@@ -1,7 +1,81 @@
 {% extends "layout.html" %}
-{% block main %}
-    <h1>Code Partner - Your Student and Self-Taught Developer Coding Partner Finder</h1>
 
-    <p>Are you a student or a self-taught developer seeking like-minded individuals to collaborate on coding projects, learn together, and share experiences? 
-        Look no further! Welcome to Code Partner, the online platform designed specifically for students and self-taught developers looking to connect and code together.</p>
+{% block title %}
+    Code Partner
+{% endblock %}
+
+
+{% block main %}
+
+<div class="row h-100 align-middle">
+    <div class="col-6 d-flex flex-column justify-content-center">
+        <h1>Code Partner</h1>
+        <h5>Your Student and Self-Taught Developer Coding Partner Finder</h5>
+    </div>
+    <div class="col-6 d-flex flex-column justify-content-center">
+        <p>
+            Are you a student or a self-taught developer seeking like-minded individuals to collaborate on coding projects, learn together, and share experiences? 
+            Look no further! Welcome to Code Partner, the online platform designed specifically for students and self-taught developers looking to connect and code together.
+        </p>
+        <h4>Join Now!</h4>
+        <button type="button" class="btn btn-primary btn-lg" onclick="openRegForm()">Register</button>
+        <h4>Already Have An account?</h4>
+        <button type="button" class="btn btn-primary btn-lg" onclick="openLogInForm()">Log-In</button>
+    </div>
+
+    <div class="userForm" id="loginForm">
+        <form action="/login" method="POST">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username:</label>
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="username" name="username" placeholder="Username" type="text">
+            </div>
+                <div class="mb-3">
+                <label for="password" class="form-label">Password:</label>
+                <input class="form-control mx-auto w-auto" id="password" name="password" placeholder="Password" type="password" >
+            </div>
+            <button class="btn btn-primary" type="submit">Log In</button>
+            <button type="button" class="btn cancel" onclick="closeForm()">Close</button>
+        </form>
+    </div>
+
+    <div class="userForm" id="registerForm">
+        <form action="/register" method="POST">
+            <div class="mb-3">
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="email" name="email" placeholder="Email" type="email">
+            </div>
+            <div class="mb-3">
+                <input autocomplete="off" class="form-control mx-auto w-auto" id="username" name="username" placeholder="Username" type="text" pattern="^[a-zA-Z0-9_-]{3,20}$">
+            </div>
+            <div class="mb-3">
+                <input class="form-control mx-auto w-auto" id="password" name="password" placeholder="Password" type="password" pattern="^.{6,}$">
+            </div>
+            <div class="mb-3">
+                <input class="form-control mx-auto w-auto" id="confirmation" name="confirmation" placeholder="Repeat Password" type="password" pattern="^.{6,}$">
+            </div>
+            <button class="btn btn-primary" type="submit">Register</button>
+            <button type="button" class="btn cancel" onclick="closeRegForm()">Close</button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+    function openLogInForm() {
+        document.getElementById("loginForm").style.display = "block";
+    }
+
+    function closeForm() {
+        document.getElementById("loginForm").style.display = "none";
+    }
+
+    function openRegForm() {
+        document.getElementById("registerForm").style.display = "block";
+    }
+
+    function closeRegForm() {
+        document.getElementById("registerForm").style.display = "none";
+    }
+</script>
+
+    
 {% endblock %}

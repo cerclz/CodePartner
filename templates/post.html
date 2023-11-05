@@ -1,8 +1,14 @@
 {% extends "layout.html" %}
 {% block main %}
-    <h2>{{post[0][0]}}</h2>
-    <h4>posted on: {{post[0][2]}} by: {{post[0][3]}} category: {{post[0][4]}}</h4>
-    <p>{{ post[0][1] }}</p>
+
+<div class="row pt-3 align-items-start border">
+    <div class="col-12">
+        <h6>{{post[0][2]}} {{post[0][1]}} {{post[0][3]}}</h6>
+    </div>
+    <div class="col text-left">
+        <p>{{post[0][0]}}</p>
+    </div>
+</div>
     <h2>Replies</h2>
     {% for reply in replies %}
     <div class="row py-2 align-items-start">
@@ -14,7 +20,7 @@
     {% endfor %}
     <form action="/post/{{id}}" method="POST" id="replyform">
         <div class="mb-3">
-            <textarea class="form-control mx-auto" id="reply" name="reply" form="replyform" rows="4" cols="50" maxlength="140" placeholder="What are you working at?"></textarea>
+            <textarea class="form-control mx-auto" id="reply" name="reply" form="replyform" rows="4" cols="50" maxlength="140" placeholder="..?"></textarea>
         </div>
     
         <button class="btn btn-primary" type="submit">Reply</button>

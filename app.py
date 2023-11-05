@@ -2,7 +2,7 @@
 from flask import Flask, redirect, render_template, request, session, flash
 from flask_session import Session
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import date
+from datetime import date, datetime
 import sqlite3
 import re
 
@@ -26,68 +26,72 @@ cursor = conn.cursor()
 def register():
     # Register User
 
-    user_email = request.form.get("email")
-    username = request.form.get("username")
-    user_password = request.form.get("password")
-    confirmation = request.form.get("confirmation")
-    # Check if method is POST
-    if request.method == "POST":
-        # Check if the user filled the form
-        if not user_email or not username or not user_password or user_password != confirmation:
-            flash("An error occurred while processing your registration.", 'error')
-            return render_template("register.html")
-        
-        # Check if form meets regex
-        if not re.match(username_regex, username) or not re.match(password_regex, user_password):
-            return("Not a valid username or password") 
-        
-        # Generate password hash for the user
-        password_hash = generate_password_hash(user_password)
+    if session.get("user_id") is None:
 
-        # Check if user exists and insert into database
-        cursor.execute("SELECT username, email FROM users WHERE username = ? or email = ?", (username, user_email))
-        existing_data = cursor.fetchall()
-        if existing_data:
-            return ("Username or email is already taken.")
-        else:
-            cursor.execute("INSERT INTO users (email, username, password_hash, registration_date) VALUES (?, ?, ?, ?)",(user_email, username, password_hash, date.today()))
-            conn.commit()
+        user_email = request.form.get("email")
+        username = request.form.get("username")
+        user_password = request.form.get("password")
+        confirmation = request.form.get("confirmation")
+        # Check if method is POST
+        if request.method == "POST":
+            # Check if the user filled the form
+            if not user_email or not username or not user_password or user_password != confirmation:
+                flash("An error occurred while processing your registration.", 'error')
+                return render_template("register.html")
+            
+            # Check if form meets regex
+            if not re.match(username_regex, username) or not re.match(password_regex, user_password):
+                return("Not a valid username or password") 
+            
+            # Generate password hash for the user
+            password_hash = generate_password_hash(user_password)
 
-        # Send an alert if successful
-        flash("Welcome aboard! Your account has been created.")
+            # Check if user exists and insert into database
+            cursor.execute("SELECT username, email FROM users WHERE username = ? or email = ?", (username, user_email))
+            existing_data = cursor.fetchall()
+            if existing_data:
+                return ("Username or email is already taken.")
+            else:
+                cursor.execute("INSERT INTO users (email, username, password_hash, registration_date) VALUES (?, ?, ?, ?)",(user_email, username, password_hash, date.today()))
+                conn.commit()
 
-    return render_template("register.html")
+            # Send an alert if successful
+            flash("Welcome aboard! Your account has been created.")
+
+    return render_template("index.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     # Log user in
     session.clear()
 
-    if request.method == "POST":
+    if session.get("user_id") is None:
 
-        # Ensure information submitted
-        if not request.form.get("username"):
-            return ("No username")
-        elif not request.form.get("password"):
-            return ("no password")
-        
-        # Check database for username
-        cursor.execute("SELECT * FROM users WHERE username = ?", [request.form.get("username")])
-        rows = cursor.fetchall()
+        if request.method == "POST":
 
-        # Ensure that user exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0][3], request.form.get("password")):
-            return ("Wrong username or password!")
-        
-        # Remeber Session information
-        session["user_id"] = rows[0][0]
-        session["username"] = request.form.get("username")
-        session['logged_in'] = True  
+            # Ensure information submitted
+            if not request.form.get("username"):
+                return ("No username")
+            elif not request.form.get("password"):
+                return ("no password")
+            
+            # Check database for username
+            cursor.execute("SELECT * FROM users WHERE username = ?", [request.form.get("username")])
+            rows = cursor.fetchall()
 
-        # Redirect to homepage
-        return redirect("/")      
+            # Ensure that user exists and password is correct
+            if len(rows) != 1 or not check_password_hash(rows[0][3], request.form.get("password")):
+                return ("Wrong username or password!")
+            
+            # Remeber Session information
+            session["user_id"] = rows[0][0]
+            session["username"] = request.form.get("username")
+            session['logged_in'] = True  
 
-    return render_template("login.html")
+            # Redirect to homepage
+            return redirect("/partner")      
+
+    return redirect("index")
 
 @app.route("/logout")
 def logout():
@@ -101,34 +105,66 @@ def logout():
 @app.route("/")
 def index():
     if session.get("user_id") is None:
-        return render_template("index.html")
+        return render_template("/index.html")
     else:
-        return render_template("index.html")
+        return redirect("partner")
     
-@app.route("/partner")
+@app.route("/partner", methods=["GET", "POST"])
 def partner():
-    page = request.args.get('page', 1, type=int)
-
-    # Calculate the offset based on the page and per_page values
-    offset = (page - 1) * 10
+    # Check if user is logged in
+    if session.get("user_id") is None:
+        return ("You are not logged in")
     
-    # Query the database to get the posts for the current page in descending order
-    cursor.execute("""SELECT posts.id, posts.title, posts.content, posts.creation_date, users.username, categories.category_name 
-                   FROM posts
-                   JOIN users ON users.id = posts.user_id 
-                   JOIN categories ON categories.id = posts.category_id
-                   ORDER BY posts.last_modified DESC
-                   LIMIT ? OFFSET ?;""", (10, offset))
-    posts = cursor.fetchall()
+    # If user is logged in check if method is POST
+    if request.method == "POST":
+            # If method is post ensure the form submitted correctly
+            category = request.form.get("category")
+            subject = request.form.get("subject")
 
-    # Query the database to get the total count of posts
-    cursor.execute("SELECT COUNT(*) FROM posts;")
-    total_posts = cursor.fetchall()[0][0]
+            if not subject:
+                flash("No Subject!", 'error')
+                return redirect("partner")
+            
+            # If category submitted correctly find category ID
+            if not category:
+                flash("No Category Selected!", 'error')
+                return redirect("partner")
+            else:
+                cursor.execute("SELECT id FROM categories WHERE category_name = ?", [category])
+                category_id = cursor.fetchall()[0][0]
 
-    total_pages = (total_posts + 10 - 1) // 10
-    
-    # Send all posts to partner page
-    return render_template("partner.html", posts = posts , total_pages = total_pages, page = page)
+            # Submit the post to database
+            cursor.execute("INSERT INTO posts (content, user_id, category_id, creation_date, last_modified) VALUES (?, ?, ?, ?, ?)", (subject, int(session["user_id"]), int(category_id), date.today(), date.today()))
+            conn.commit()
+
+    if request.method == "GET":    
+        page = request.args.get('page', 1, type=int)
+
+        # Calculate the offset based on the page and per_page values
+        offset = (page - 1) * 10
+        
+        # Query the database to get the posts for the current page in descending order
+        cursor.execute("""SELECT posts.id, posts.content, posts.creation_date, users.username, categories.category_name 
+                    FROM posts
+                    JOIN users ON users.id = posts.user_id 
+                    JOIN categories ON categories.id = posts.category_id
+                    ORDER BY posts.last_modified DESC
+                    LIMIT ? OFFSET ?;""", (10, offset))
+        posts = cursor.fetchall()
+        print(posts)
+
+        # Query the database to get the total count of posts
+        cursor.execute("SELECT COUNT(*) FROM posts;")
+        total_posts = cursor.fetchall()[0][0]
+
+        total_pages = (total_posts + 10 - 1) // 10
+
+        # Select all category names from database
+        cursor.execute("SELECT category_name FROM categories")
+        rows = cursor.fetchall()
+        
+        # Send all posts to partner page
+        return render_template("partner.html", posts = posts , total_pages = total_pages, page = page, cats=rows)
 
 @app.route("/post/<int:id>", methods=["GET", "POST"])
 def post(id):
@@ -139,12 +175,13 @@ def post(id):
         conn.commit()
 
     # Query database to get the post information
-    cursor.execute("""SELECT posts.title, posts.content, posts.creation_date, users.username, categories.category_name
+    cursor.execute("""SELECT posts.content, posts.creation_date, users.username, categories.category_name
                    FROM posts
                    JOIN users ON users.id = posts.user_id 
                    JOIN categories ON categories.id = posts.category_id
                    WHERE posts.id = ?;""", [int(id)])
     post = cursor.fetchall()
+    print(post)
 
     # Query database to get replies
     cursor.execute("""SELECT replies.content, replies.creation_date, users.username
@@ -153,43 +190,6 @@ def post(id):
                    WHERE post_id = ?""", [int(id)])
     replies = cursor.fetchall()
     return render_template("post.html", post=post, id = id, replies = replies)
-
-
-@app.route("/create_post", methods=["GET", "POST"])
-def create_post():
-    # Check if user is logged in
-    if session.get("user_id") is None:
-        return ("You are not logged in")
-    else:
-        # If user is logged in check if method is POST
-        if request.method == "POST":
-            # If method is post ensure the form submitted correctly
-            title = request.form.get("title")
-            category = request.form.get("category")
-            subject = request.form.get("subject")
-
-            if not title:
-                return ("No title")
-            elif not subject:
-                return ("no subject")
-            
-            # If category submitted correctly find category ID
-            if not category:
-                return ("no category")
-            else:
-                cursor.execute("SELECT id FROM categories WHERE category_name = ?", [category])
-                category_id = cursor.fetchall()[0][0]
-            
-            # Submit the post to database
-            cursor.execute("INSERT INTO posts (title, content, user_id, category_id, creation_date, last_modified) VALUES (?, ?, ?, ?, ?, ?)", (title, subject, int(session["user_id"]), int(category_id), date.today(), date.today()))
-            conn.commit()
-        
-        # Select all category names from database
-        cursor.execute("SELECT category_name FROM categories")
-        rows = cursor.fetchall()
-
-        # Render create post template with categories
-        return render_template("create_post.html", cats=rows)
     
 @app.route("/profile")
 def profile():

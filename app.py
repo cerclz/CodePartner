@@ -134,8 +134,10 @@ def partner():
                 category_id = cursor.fetchall()[0][0]
 
             # Submit the post to database
-            cursor.execute("INSERT INTO posts (content, user_id, category_id, creation_date, last_modified) VALUES (?, ?, ?, ?, ?)", (subject, int(session["user_id"]), int(category_id), date.today(), date.today()))
+            cursor.execute("INSERT INTO posts (content, user_id, category_id, creation_date, last_modified) VALUES (?, ?, ?, ?, ?)", (subject, int(session["user_id"]), int(category_id), date.today(), datetime.now()))
             conn.commit()
+
+            return redirect("partner")
 
     if request.method == "GET":    
         page = request.args.get('page', 1, type=int)

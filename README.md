@@ -1,5 +1,5 @@
 # Code Partner
-### Video Demo:  <URL HERE>
+### Video Demo:  https://youtu.be/SqFf-0yiY0U
 ### CS50 Final Project - Code Partner
 ### Description:
 Code partner is a forum-like tool that helps people find other people to collaborate on coding projects.
